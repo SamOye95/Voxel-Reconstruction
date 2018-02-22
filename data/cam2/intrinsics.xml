@@ -5,8 +5,8 @@
   <cols>3</cols>
   <dt>f</dt>
   <data>
-    0. 0. 0.
-    0. 0. 0.
+    567.289 0. 124.227
+    0. 591.748 118.278
     0. 0. 1.
   </data>
 </CameraMatrix>
@@ -15,11 +15,11 @@
   <cols>1</cols>
   <dt>f</dt>
   <data>
-    0.
-    0.
-    0.
-    0.
-    0.
+    -0.341487
+    0.09503
+    0.00667205
+    0.0342072
+    -0.0175294
   </data>
 </DistortionCoeffs>
 </opencv_storage>
