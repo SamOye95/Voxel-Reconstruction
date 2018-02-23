@@ -21,6 +21,9 @@ using namespace cv;
 
 namespace nl_uu_science_gmt
 {
+	int erosion_size = 3;
+	int dilation_size = 3;
+	int const max_kernel_size = 21;
 
 /**
  * Constructor
@@ -79,6 +82,12 @@ Scene3DRenderer::Scene3DRenderer(
 	createTrackbar("H", VIDEO_WINDOW, &m_h_threshold, 255);
 	createTrackbar("S", VIDEO_WINDOW, &m_s_threshold, 255);
 	createTrackbar("V", VIDEO_WINDOW, &m_v_threshold, 255);
+
+	createTrackbar("Erosion kernel size:", VIDEO_WINDOW,
+		&erosion_size, max_kernel_size);
+
+	createTrackbar("Dilation kernel size", VIDEO_WINDOW,
+		&dilation_size, max_kernel_size);
 
 	createFloorGrid();
 	setTopView();
@@ -146,6 +155,19 @@ void Scene3DRenderer::processForeground(
 	bitwise_or(foreground, background, foreground);
 
 	// Improve the foreground image
+	Mat erosion_kernel = getStructuringElement(MORPH_RECT,
+		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+		Point(erosion_size, erosion_size));
+
+	Mat dilation_kernel = getStructuringElement(MORPH_RECT,
+		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+		Point(erosion_size, erosion_size));
+
+
+	erode(foreground, foreground, erosion_kernel);
+	dilate(foreground, foreground, dilation_kernel);
+	erode(foreground, foreground, erosion_kernel);
+
 
 	camera->setForegroundImage(foreground);
 }
