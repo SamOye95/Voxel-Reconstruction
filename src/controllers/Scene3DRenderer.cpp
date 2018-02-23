@@ -160,14 +160,12 @@ void Scene3DRenderer::processForeground(
 		Point(erosion_size, erosion_size));
 
 	Mat dilation_kernel = getStructuringElement(MORPH_RECT,
-		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-		Point(erosion_size, erosion_size));
-
+		Size(2 * dilation_size + 1, 2 * dilation_size + 1),
+		Point(dilation_size, dilation_size));
 
 	erode(foreground, foreground, erosion_kernel);
 	dilate(foreground, foreground, dilation_kernel);
 	erode(foreground, foreground, erosion_kernel);
-
 
 	camera->setForegroundImage(foreground);
 }
