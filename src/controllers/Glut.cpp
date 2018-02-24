@@ -32,6 +32,11 @@
 #include "Reconstructor.h"
 #include "Scene3DRenderer.h"
 
+#include <PolyVoxCore/CubicSurfaceExtractorWithNormals.h>
+#include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
+#include <PolyVoxCore/SimpleVolume.h>
+#include <PolyVoxCore/SurfaceMesh.h>
+
 using namespace std;
 using namespace cv;
 
