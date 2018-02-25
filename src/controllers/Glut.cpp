@@ -893,11 +893,12 @@ void Glut::drawVoxels()
 		const vector<uint32_t>& vecIndices = mesh.getIndices();
 		const vector<PositionMaterialNormal>& vecVertices = mesh.getVertices();
 
+		//Color of the vertices based on the normal
 		for (size_t i = 0; i < vecIndices.size(); i++)
 		{
-			float col = vecVertices[vecIndices[i]].getNormal().dot(Vector3DFloat(1.0f, 0.0f, 0.0f)) * 0.9f + 0.3f;
+			float color = vecVertices[vecIndices[i]].getNormal().dot(Vector3DFloat(1.0f, 0.0f, 0.0f)) * 0.75f + 0.25f;
 			auto pos = vecVertices[vecIndices[i]].getPosition();
-			glColor4f(col, col, col, 1.0f);
+			glColor4f(color, color, color, 1.0f);
 			glVertex3f((pos.getX() - size) * step, (pos.getY() - size) * step, pos.getZ() * step);
 		}
 	}

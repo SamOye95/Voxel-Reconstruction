@@ -1,9 +1,9 @@
 /**
-UU-INFOMCV 2018
-Assignment 2 - Voxel Reconstruction
+	UU-INFOMCV 2018
+	Assignment 2 - Voxel Reconstruction
 
-Satwiko Wirawan Indrawanto - 6201539
-Basar Oguz - 6084990
+	Satwiko Wirawan Indrawanto - 6201539
+	Basar Oguz - 6084990
 */
 
 #include <cstdlib>

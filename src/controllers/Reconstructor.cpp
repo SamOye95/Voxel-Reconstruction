@@ -196,7 +196,7 @@ void Reconstructor::update()
 	{
 		volData.setVoxelAt(visible_voxels[v]->x / m_step + m_size, visible_voxels[v]->y / m_step + m_size, visible_voxels[v]->z / m_step + 1, 255);
 	}
-	//Extracting the surface
+	//Convert volume data to triangle mesh
 	MarchingCubesSurfaceExtractor<SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
 	surfaceExtractor.execute();
 }

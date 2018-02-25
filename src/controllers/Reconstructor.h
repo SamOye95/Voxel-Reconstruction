@@ -16,10 +16,9 @@
 
 //PolyVox libraries
 #include "PolyVoxCore/MaterialDensityPair.h"
-#include "PolyVoxCore/CubicSurfaceExtractorWithNormals.h"
+#include "PolyVoxCore/MarchingCubesSurfaceExtractor.h"
 #include "PolyVoxCore/SurfaceMesh.h"
 #include "PolyVoxCore/SimpleVolume.h"
-#include "PolyVoxCore/MarchingCubesSurfaceExtractor.h"
 
 using namespace PolyVox;
 
