@@ -21,9 +21,7 @@ using namespace cv;
 
 namespace nl_uu_science_gmt
 {
-	int erosion_size = 3;
-	int dilation_size = 3;
-	int const max_kernel_size = 21;
+
 
 /**
  * Constructor
@@ -78,16 +76,18 @@ Scene3DRenderer::Scene3DRenderer(
 	m_v_threshold = V;
 	m_pv_threshold = V;
 
+	const int E = 3;
+	const int D = 3;
+	m_erosion_size = E;
+	m_dilation_size = D;
+
 	createTrackbar("Frame", VIDEO_WINDOW, &m_current_frame, m_number_of_frames - 2);
 	createTrackbar("H", VIDEO_WINDOW, &m_h_threshold, 255);
 	createTrackbar("S", VIDEO_WINDOW, &m_s_threshold, 255);
 	createTrackbar("V", VIDEO_WINDOW, &m_v_threshold, 255);
 
-	createTrackbar("Erosion kernel size:", VIDEO_WINDOW,
-		&erosion_size, max_kernel_size);
-
-	createTrackbar("Dilation kernel size", VIDEO_WINDOW,
-		&dilation_size, max_kernel_size);
+	createTrackbar("Erosion kernel size:", VIDEO_WINDOW, &m_erosion_size, max_kernel_size);
+	createTrackbar("Dilation kernel size", VIDEO_WINDOW, &m_dilation_size, max_kernel_size);
 
 	createFloorGrid();
 	setTopView();
@@ -156,12 +156,12 @@ void Scene3DRenderer::processForeground(
 
 	// Improve the foreground image
 	Mat erosion_kernel = getStructuringElement(MORPH_RECT,
-		Size(2 * erosion_size + 1, 2 * erosion_size + 1),
-		Point(erosion_size, erosion_size));
+		Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
+		Point(m_erosion_size, m_erosion_size));
 
 	Mat dilation_kernel = getStructuringElement(MORPH_RECT,
-		Size(2 * dilation_size + 1, 2 * dilation_size + 1),
-		Point(dilation_size, dilation_size));
+		Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
+		Point(m_dilation_size, m_dilation_size));
 
 	erode(foreground, foreground, erosion_kernel);
 	dilate(foreground, foreground, dilation_kernel);

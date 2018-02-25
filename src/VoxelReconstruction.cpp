@@ -94,6 +94,7 @@ void VoxelReconstruction::showKeys()
 	cout << "i       : Show/hide camera numbers (Linux only)" << endl;
 	cout << "o       : Show/hide origin" << endl;
 	cout << "t       : Top view" << endl;
+	cout << "d       : Toggle mesh drawing" << endl;
 	cout << "1,2,3,4 : Switch camera #" << endl << endl;
 	cout << "Zoom with the scrollwheel while on the 3D scene" << endl;
 	cout << "Rotate the 3D scene with left click+drag" << endl << endl;

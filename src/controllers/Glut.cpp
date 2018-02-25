@@ -32,16 +32,20 @@
 #include "Reconstructor.h"
 #include "Scene3DRenderer.h"
 
-#include <PolyVoxCore/CubicSurfaceExtractorWithNormals.h>
-#include <PolyVoxCore/MarchingCubesSurfaceExtractor.h>
-#include <PolyVoxCore/SimpleVolume.h>
-#include <PolyVoxCore/SurfaceMesh.h>
+//PolyVox libraries
+#include "PolyVoxCore/MaterialDensityPair.h"
+#include "PolyVoxCore/CubicSurfaceExtractorWithNormals.h"
+#include "PolyVoxCore/SurfaceMesh.h"
+#include "PolyVoxCore/SimpleVolume.h"
 
 using namespace std;
 using namespace cv;
+using namespace PolyVox;
 
 namespace nl_uu_science_gmt
 {
+
+bool drawMesh = false;
 
 Glut* Glut::m_Glut;
 
@@ -279,6 +283,11 @@ void Glut::keyboard(
 		if (key == 'q' || key == 'Q')
 		{
 			scene3d.setQuit(true);
+		}
+		//option to toggle mesh drawing
+		else if (key == 'd' || key == 'D')
+		{
+			drawMesh = !drawMesh;
 		}
 		else if (key == 'p' || key == 'P')
 		{
@@ -618,7 +627,8 @@ void Glut::update(
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
 	}
 	else if (scene3d.getHThreshold() != scene3d.getPHThreshold() || scene3d.getSThreshold() != scene3d.getPSThreshold()
-			|| scene3d.getVThreshold() != scene3d.getPVThreshold())
+			|| scene3d.getVThreshold() != scene3d.getPVThreshold()
+			|| scene3d.getErosionSize() != scene3d.getPErosionSize() || scene3d.getDilationSize() != scene3d.getPDilationSize())
 	{
 		// Update the scene if one of the HSV sliders was moved (when the video is paused)
 		scene3d.processFrame();
@@ -627,6 +637,10 @@ void Glut::update(
 		scene3d.setPHThreshold(scene3d.getHThreshold());
 		scene3d.setPSThreshold(scene3d.getSThreshold());
 		scene3d.setPVThreshold(scene3d.getVThreshold());
+
+		// Update the scene if one of the Erosion/Dilation slider was moved (when the video is paused)
+		scene3d.setPErosionSize(scene3d.getErosionSize());
+		scene3d.setPDilationSize(scene3d.getDilationSize());
 	}
 
 	// Auto rotate the scene
@@ -852,16 +866,40 @@ void Glut::drawVoxels()
 {
 	glPushMatrix();
 
-	// apply default translation
-	glTranslatef(0, 0, 0);
-	glPointSize(2.0f);
-	glBegin(GL_POINTS);
 
-	vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
-	for (size_t v = 0; v < voxels.size(); v++)
+	if (!drawMesh)
 	{
-		glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
-		glVertex3f((GLfloat) voxels[v]->x, (GLfloat) voxels[v]->y, (GLfloat) voxels[v]->z);
+		// apply default translation
+		glTranslatef(0, 0, 0);
+		glPointSize(2.0f);
+		glBegin(GL_POINTS);
+
+		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
+		for (size_t v = 0; v < voxels.size(); v++)
+		{
+			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+			glVertex3f((GLfloat)voxels[v]->x, (GLfloat)voxels[v]->y, (GLfloat)voxels[v]->z);
+		}
+	}
+	else
+	{
+		glBegin(GL_TRIANGLES);
+
+		int step = m_Glut->getScene3d().getReconstructor().getStep();
+		int size = m_Glut->getScene3d().getReconstructor().getSize() / step;
+		const SurfaceMesh<PositionMaterialNormal>& mesh = m_Glut->getScene3d().getReconstructor().getMesh();
+
+		//Convienient access to the vertices and indices
+		const vector<uint32_t>& vecIndices = mesh.getIndices();
+		const vector<PositionMaterialNormal>& vecVertices = mesh.getVertices();
+
+		for (size_t i = 0; i < vecIndices.size(); i++)
+		{
+			float col = vecVertices[vecIndices[i]].getNormal().dot(Vector3DFloat(1.0f, 0.0f, 0.0f)) * 0.9f + 0.3f;
+			auto pos = vecVertices[vecIndices[i]].getPosition();
+			glColor4f(col, col, col, 1.0f);
+			glVertex3f((pos.getX() - size) * step, (pos.getY() - size) * step, pos.getZ() * step);
+		}
 	}
 
 	glEnd();

@@ -70,6 +70,13 @@ class Scene3DRenderer
 	int m_v_threshold;                        // Value threshold number for background subtraction
 	int m_pv_threshold;                       // Value threshold value at previous iteration (update awareness)
 
+	///Added user function
+	int m_erosion_size;
+	int m_perosion_size;
+	int m_dilation_size;
+	int m_pdilation_size;
+	int const max_kernel_size = 21;
+
 	// edge points of the virtual ground floor grid
 	std::vector<std::vector<cv::Point3i*> > m_floor_grid;
 
@@ -411,6 +418,51 @@ public:
 	int getSquareSideLen() const
 	{
 		return m_square_side_len;
+	}
+
+	///added user functions
+	int getErosionSize() const
+	{
+		return m_erosion_size;
+	}
+
+	int getDilationSize() const
+	{
+		return m_dilation_size;
+	}
+
+	int getPErosionSize() const
+	{
+		return m_perosion_size;
+	}
+
+	int getPDilationSize() const
+	{
+		return m_pdilation_size;
+	}
+
+	void setErosionSize(
+		int erosionSize)
+	{
+		m_erosion_size = erosionSize;
+	}
+
+	void setPErosionSize(
+		int perosionSize)
+	{
+		m_perosion_size = perosionSize;
+	}
+
+	void setDilationSize(
+		int dilationSize)
+	{
+		m_dilation_size = dilationSize;
+	}
+
+	void setPDilationSize(
+		int pdilationSize)
+	{
+		m_pdilation_size = pdilationSize;
 	}
 };
 

@@ -48,6 +48,7 @@ Thumbs.db
 /x64/*
 /Debug/*
 /opencv/*
+/Release/*
 /data/cam1/background/*
 /data/cam2/background/*
 /data/cam3/background/*
