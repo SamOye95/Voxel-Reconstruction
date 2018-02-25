@@ -47,9 +47,11 @@ Thumbs.db
 .vs/*
 /x64/*
 /Debug/*
+/Video/*
 /opencv/*
 /Release/*
 /data/cam1/background/*
 /data/cam2/background/*
 /data/cam3/background/*
 /data/cam4/background/*
+/Adobe After Effects Auto-Save/*

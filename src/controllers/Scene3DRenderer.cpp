@@ -66,9 +66,9 @@ Scene3DRenderer::Scene3DRenderer(
 	m_current_frame = 0;
 	m_previous_frame = -1;
 
-	const int H = 0;
-	const int S = 0;
-	const int V = 0;
+	const int H = 10;
+	const int S = 20;
+	const int V = 50;
 	m_h_threshold = H;
 	m_ph_threshold = H;
 	m_s_threshold = S;
@@ -76,7 +76,7 @@ Scene3DRenderer::Scene3DRenderer(
 	m_v_threshold = V;
 	m_pv_threshold = V;
 
-	const int E = 3;
+	const int E = 1;
 	const int D = 3;
 	m_erosion_size = E;
 	m_dilation_size = D;
