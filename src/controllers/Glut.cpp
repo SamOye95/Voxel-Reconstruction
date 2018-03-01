@@ -284,6 +284,13 @@ void Glut::keyboard(
 		{
 			scene3d.setQuit(true);
 		}
+		// option to toggle auto parameters
+		else if (key == 'a' || key == 'A')
+		{
+			scene3d.setAutoParameters();
+			scene3d.processFrame();
+			scene3d.getReconstructor().update();
+		}
 		//option to toggle mesh drawing
 		else if (key == 'd' || key == 'D')
 		{

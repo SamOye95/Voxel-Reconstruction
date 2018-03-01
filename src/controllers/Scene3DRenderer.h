@@ -76,6 +76,7 @@ class Scene3DRenderer
 	int m_dilation_size;
 	int m_pdilation_size;
 	int const max_kernel_size = 21;
+	bool autoParameters = false;
 
 	// edge points of the virtual ground floor grid
 	std::vector<std::vector<cv::Point3i*> > m_floor_grid;
@@ -463,6 +464,11 @@ public:
 		int pdilationSize)
 	{
 		m_pdilation_size = pdilationSize;
+	}
+
+	void setAutoParameters()
+	{
+		autoParameters = !autoParameters;
 	}
 };
 

@@ -22,6 +22,7 @@ using namespace cv;
 namespace nl_uu_science_gmt
 {
 
+void calculateDifferenceHSV(const Mat &imageA, const Mat &imageB, Mat &imageOut);
 
 /**
  * Constructor
@@ -136,37 +137,64 @@ void Scene3DRenderer::processForeground(
 	Mat hsv_image;
 	cvtColor(camera->getFrame(), hsv_image, CV_BGR2HSV);  // from BGR to HSV color space
 
-	vector<Mat> channels;
-	split(hsv_image, channels);  // Split the HSV-channels for further analysis
-
-	// Background subtraction H
 	Mat tmp, foreground, background;
-	absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
-	threshold(tmp, foreground, m_h_threshold, 255, CV_THRESH_BINARY);
+	if (!autoParameters)
+	{
+		vector<Mat> channels;
+		split(hsv_image, channels);  // Split the HSV-channels for further analysis
 
-	// Background subtraction S
-	absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
-	threshold(tmp, background, m_s_threshold, 255, CV_THRESH_BINARY);
-	bitwise_and(foreground, background, foreground);
+		// Background subtraction H
+		absdiff(channels[0], camera->getBgHsvChannels().at(0), tmp);
+		threshold(tmp, foreground, m_h_threshold, 255, CV_THRESH_BINARY);
 
-	// Background subtraction V
-	absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
-	threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
-	bitwise_or(foreground, background, foreground);
+		// Background subtraction S
+		absdiff(channels[1], camera->getBgHsvChannels().at(1), tmp);
+		threshold(tmp, background, m_s_threshold, 255, CV_THRESH_BINARY);
+		bitwise_and(foreground, background, foreground);
 
-	// Improve the foreground image
-	Mat erosion_kernel = getStructuringElement(MORPH_RECT,
-		Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
-		Point(m_erosion_size, m_erosion_size));
+		// Background subtraction V
+		absdiff(channels[2], camera->getBgHsvChannels().at(2), tmp);
+		threshold(tmp, background, m_v_threshold, 255, CV_THRESH_BINARY);
+		bitwise_or(foreground, background, foreground);
 
-	Mat dilation_kernel = getStructuringElement(MORPH_RECT,
-		Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
-		Point(m_dilation_size, m_dilation_size));
+		// Improve the foreground image
+		Mat erosion_kernel = getStructuringElement(MORPH_RECT,
+			Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
+			Point(m_erosion_size, m_erosion_size));
 
-	erode(foreground, foreground, erosion_kernel);
-	dilate(foreground, foreground, dilation_kernel);
-	erode(foreground, foreground, erosion_kernel);
+		Mat dilation_kernel = getStructuringElement(MORPH_RECT,
+			Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
+			Point(m_dilation_size, m_dilation_size));
 
+		erode(foreground, foreground, erosion_kernel);
+		dilate(foreground, foreground, dilation_kernel);
+		erode(foreground, foreground, erosion_kernel);
+	}
+	else
+	{
+		merge(camera->getBgHsvChannels(), background);
+
+		Mat difference(background.rows, background.cols, CV_8UC1);
+		calculateDifferenceHSV(hsv_image, background, difference);
+
+		double thresh = threshold(difference, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+		threshold(difference, foreground, thresh * 0.5, 255, CV_THRESH_BINARY);
+		bitwise_or(foreground, difference, foreground);
+		threshold(foreground, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+
+		// Improve the foreground image
+		Mat erosion_kernel = getStructuringElement(MORPH_ELLIPSE,
+			Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
+			Point(m_erosion_size, m_erosion_size));
+
+		Mat dilation_kernel = getStructuringElement(MORPH_ELLIPSE,
+			Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
+			Point(m_dilation_size, m_dilation_size));
+
+		dilate(foreground, foreground, dilation_kernel);
+		erode(foreground, foreground, erosion_kernel);
+		medianBlur(foreground, foreground, 5);
+	}
 	camera->setForegroundImage(foreground);
 }
 
@@ -238,6 +266,39 @@ void Scene3DRenderer::createFloorGrid()
 	m_floor_grid.push_back(edge2);
 	m_floor_grid.push_back(edge3);
 	m_floor_grid.push_back(edge4);
+}
+
+/// Added user function
+/**
+* Calculate HSV image differences
+*/
+void calculateDifferenceHSV(const Mat &imageA, const Mat &imageB, Mat &imageOut)
+{
+	// create input and output image iterators
+	MatConstIterator_<Vec3b> iterA = imageA.begin<Vec3b>();
+	MatConstIterator_<Vec3b> iterB = imageB.begin<Vec3b>();
+	MatIterator_<uchar> iterOut = imageOut.begin<uchar>();
+
+	// iterate through every pixel
+	while (iterOut != imageOut.end<uchar>())
+	{
+		// calculate input pixel difference
+		Vec3i pixelA(*iterA), pixelB(*iterB);
+		Vec3i difference = pixelA - pixelB;
+
+		// calculate hue
+		double hueA = (double)pixelA[0] / 180.0;
+		double hueB = (double)pixelB[0] / 180.0;
+
+		// calculate saturation
+		double saturationA = (double)pixelA[1] / 255.0;
+		double saturationB = (double)pixelB[1] / 255.0;
+
+		// pixel output
+		double scaler = pow(min(min(saturationA, saturationB) * abs(hueA - hueB) + abs(saturationA - saturationB), 1.0), 0.3);
+		*iterOut = (uchar)(sqrt(pow(difference[2], 2) + pow(difference[1], 2) + pow(difference[0], 2)) * scaler);
+		iterA++, iterB++, iterOut++;
+	}
 }
 
 } /* namespace nl_uu_science_gmt */
