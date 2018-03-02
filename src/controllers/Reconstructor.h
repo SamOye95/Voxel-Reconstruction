@@ -44,6 +44,7 @@ private:
 	const std::vector<Camera*> &m_cameras;  // vector of pointers to cameras
 	const int m_height;                     // Cube half-space height from floor to ceiling
 	const int m_step;                       // Step size (space between voxels)
+	const int m_width;						// Separate width from height
 
 	std::vector<cv::Point3f*> m_corners;    // Cube half-space corner locations
 
@@ -102,12 +103,17 @@ public:
 	}
 
 	///user added helper functions
-	//returns space between voxels
+	// returns scene length
+	int getWidth() const
+	{
+		return m_width;
+	}
+	// returns space between voxels
 	int getStep() const
 	{
 		return m_step;
 	}
-	//returns PolyVox mesh drawing surface
+	// returns PolyVox mesh drawing surface
 	const SurfaceMesh<PositionMaterialNormal>& getMesh() const
 	{
 		return m_mesh;

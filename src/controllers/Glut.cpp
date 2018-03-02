@@ -873,12 +873,12 @@ void Glut::drawVoxels()
 {
 	glPushMatrix();
 
+	// apply default translation
+	glTranslatef(0, 0, 0);
+	glPointSize(2.0f);
 
 	if (!drawMesh)
 	{
-		// apply default translation
-		glTranslatef(0, 0, 0);
-		glPointSize(2.0f);
 		glBegin(GL_POINTS);
 
 		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
@@ -893,7 +893,7 @@ void Glut::drawVoxels()
 		glBegin(GL_TRIANGLES);
 
 		int step = m_Glut->getScene3d().getReconstructor().getStep();
-		int size = m_Glut->getScene3d().getReconstructor().getSize() / step;
+		int size = (m_Glut->getScene3d().getReconstructor().getWidth() / 2) / step;
 		const SurfaceMesh<PositionMaterialNormal>& mesh = m_Glut->getScene3d().getReconstructor().getMesh();
 
 		//Convienient access to the vertices and indices

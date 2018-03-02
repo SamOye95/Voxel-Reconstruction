@@ -239,7 +239,8 @@ void Scene3DRenderer::setTopView()
  */
 void Scene3DRenderer::createFloorGrid()
 {
-	const int size = m_reconstructor.getSize() / m_num;
+	//const int size = m_reconstructor.getSize() / m_num;
+	const int size = (m_reconstructor.getWidth() / 2) / m_num;
 	const int z_offset = 3;
 
 	// edge 1

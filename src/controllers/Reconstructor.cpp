@@ -29,7 +29,9 @@ Reconstructor::Reconstructor(
 		const vector<Camera*> &cs) :
 				m_cameras(cs),
 				m_height(2048),
-				m_step(32)
+				m_step(32),
+				// define scene width
+				m_width(6144)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -39,8 +41,11 @@ Reconstructor::Reconstructor(
 			m_plane_size = m_cameras[c]->getSize();
 	}
 
-	const size_t edge = 2 * m_height;
-	m_voxels_amount = (edge / m_step) * (edge / m_step) * (m_height / m_step);
+	//const size_t edge = 2 * m_height;
+	//m_voxels_amount = (edge / m_step) * (edge / m_step) * (m_height / m_step);
+	
+	// separate scene width from height
+	m_voxels_amount = (m_width / m_step) * (m_width / m_step) * (m_height / m_step);
 
 	initialize();
 }
@@ -66,10 +71,17 @@ Reconstructor::~Reconstructor()
 void Reconstructor::initialize()
 {
 	// Cube dimensions from [(-m_height, m_height), (-m_height, m_height), (0, m_height)]
-	const int xL = -m_height;
-	const int xR = m_height;
-	const int yL = -m_height;
-	const int yR = m_height;
+	//const int xL = -m_height;
+	//const int xR = m_height;
+	//const int yL = -m_height;
+	//const int yR = m_height;
+
+	// separate scene length from height
+	const int xL = -m_width / 2;
+	const int xR = m_width / 2;
+	const int yL = -m_width / 2;
+	const int yR = m_width / 2;
+
 	const int zL = 0;
 	const int zR = m_height;
 	const int plane_y = (yR - yL) / m_step;
@@ -190,11 +202,15 @@ void Reconstructor::update()
 
 	///added user function
 	//Fill volume data by looping through all visible voxels
-	int m_size = m_height / m_step;
-	SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(m_size * 2, m_size * 2, m_size)));
+	//int m_size = m_height / m_step;
+	//SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(m_size * 2, m_size * 2, m_size)));
+	int size_h = m_height / m_step;
+	int size_w = m_width / m_step;
+	SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), PolyVox::Vector3DInt32(size_w, size_w, size_h)));
 	for (size_t v = 0; v < visible_voxels.size(); v++)
 	{
-		volData.setVoxelAt(visible_voxels[v]->x / m_step + m_size, visible_voxels[v]->y / m_step + m_size, visible_voxels[v]->z / m_step + 1, 255);
+		//volData.setVoxelAt(visible_voxels[v]->x / m_step + m_size, visible_voxels[v]->y / m_step + m_size, visible_voxels[v]->z / m_step + 1, 255);
+		volData.setVoxelAt(visible_voxels[v]->x / m_step + size_w / 2, visible_voxels[v]->y / m_step + size_w / 2, visible_voxels[v]->z / m_step + 1, 255);
 	}
 	//Convert volume data to triangle mesh
 	MarchingCubesSurfaceExtractor<SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
