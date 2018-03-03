@@ -31,7 +31,9 @@ Reconstructor::Reconstructor(
 				m_height(2048),
 				m_step(32),
 				// define scene width
-				m_width(6144)
+				m_width(6144),
+				m_clusterCount(4),
+				m_clusterCenters(4)
 {
 	for (size_t c = 0; c < m_cameras.size(); ++c)
 	{
@@ -162,6 +164,55 @@ void Reconstructor::initialize()
 }
 
 /**
+* Initialize label for each visible voxels
+* use kmeans for clustering and to calculate cluster center to draw the tracks
+*/
+void Reconstructor::labelClusters(bool isFirstFrame)
+{
+	vector<int> labels(m_visible_voxels.size());
+	vector<Point2f> points;
+	Mat centers;
+	
+	for (int i = 0; i < m_visible_voxels.size(); i++)
+	{
+		points.push_back(Point(m_visible_voxels[i]->x, m_visible_voxels[i]->y));
+		if (!isFirstFrame)
+		{
+			labels[i] = m_visible_voxels[i]->label;
+		}
+	}
+	
+	// clustering the voxels based on the cluster count
+	if (isFirstFrame)
+	{
+		// use kmeans++ center initialization by Arthur and Vassilvitskii [Arthur2007]
+		kmeans(points, m_clusterCount, labels,
+			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
+			4, KMEANS_PP_CENTERS, centers);
+
+		// fill the label based on kmeans calculation
+		for (int i = 0; i < m_visible_voxels.size(); i++)
+		{
+			m_visible_voxels[i]->label = labels[i];
+		}
+	}
+	else
+	{
+		// use the user-supplied labels instead of computing them from the initial centers
+		kmeans(points, m_clusterCount, labels,
+			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
+			1, KMEANS_USE_INITIAL_LABELS, centers);
+	}
+	
+	// set path tracker centers by calculating the cluster centers
+	for (int i = 0; i < m_clusterCount; i++)
+	{
+		m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
+	}	
+	trackCenters.push_back(m_clusterCenters);
+}
+
+/**
  * Count the amount of camera's each voxel in the space appears on,
  * if that amount equals the amount of cameras, add that voxel to the
  * visible_voxels vector
@@ -169,7 +220,7 @@ void Reconstructor::initialize()
 void Reconstructor::update()
 {
 	m_visible_voxels.clear();
-	std::vector<Voxel*> visible_voxels;
+	vector<Voxel*> visible_voxels;
 
 	int v;
 //#pragma omp parallel for schedule(auto) private(v) shared(visible_voxels)
@@ -193,6 +244,20 @@ void Reconstructor::update()
 		// If the voxel is present on all cameras
 		if (camera_counter == m_cameras.size())
 		{
+			int minLabel = 0;
+			float minDistance = norm(m_clusterCenters[0] - Point2f(voxel->x, voxel->y));
+			
+			for (int i = 0; i < m_clusterCount; i++)
+			{
+				float distance = norm(m_clusterCenters[i] - Point2f(voxel->x, voxel->y));
+				if (distance < minDistance)
+				{
+					minLabel = i;
+					minDistance = distance;
+				}
+			}
+			voxel->label = minLabel;
+
 #pragma omp critical //push_back is critical
 			visible_voxels.push_back(voxel);
 		}
@@ -203,10 +268,10 @@ void Reconstructor::update()
 	///added user function
 	//Fill volume data by looping through all visible voxels
 	//int m_size = m_height / m_step;
-	//SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(m_size * 2, m_size * 2, m_size)));
+	//SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(m_size * 2, m_size * 2, m_size)));	
 	int size_h = m_height / m_step;
 	int size_w = m_width / m_step;
-	SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), PolyVox::Vector3DInt32(size_w, size_w, size_h)));
+	SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(size_w, size_w, size_h)));
 	for (size_t v = 0; v < visible_voxels.size(); v++)
 	{
 		//volData.setVoxelAt(visible_voxels[v]->x / m_step + m_size, visible_voxels[v]->y / m_step + m_size, visible_voxels[v]->z / m_step + 1, 255);

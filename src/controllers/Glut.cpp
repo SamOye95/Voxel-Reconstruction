@@ -575,6 +575,7 @@ void Glut::display()
 		drawArcball();
 
 	drawVoxels();
+	drawTracks();
 
 	if (scene3d.isShowOrg())
 		drawWCoord();
@@ -600,6 +601,7 @@ void Glut::update(
 {
 	char key = waitKey(10);
 	keyboard(key, 0, 0);  // call glut key handler :)
+	static bool isFirstFrame = true; // Set static bool so only the first frame is set as true
 
 	Scene3DRenderer& scene3d = m_Glut->getScene3d();
 	if (scene3d.isQuit())
@@ -628,9 +630,29 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame())
 	{
+		// If it is the first frame, set voxel tracking center
+		if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame() + 1)
+		{
+			isFirstFrame = true;
+			scene3d.getReconstructor().trackCenters.resize(scene3d.getCurrentFrame() - 1);
+		}
+
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
 		scene3d.getReconstructor().update();
+		
+		// If it is the first frame, mark new clusters using kmeans
+		if (isFirstFrame)
+		{
+			scene3d.getReconstructor().labelClusters(true);
+			isFirstFrame = false;
+		}
+		// If it is not the first frame, update clusters using kmeans
+		else
+		{
+			scene3d.getReconstructor().labelClusters(false);
+		}
+
 		scene3d.setPreviousFrame(scene3d.getCurrentFrame());
 	}
 	else if (scene3d.getHThreshold() != scene3d.getPHThreshold() || scene3d.getSThreshold() != scene3d.getPSThreshold()
@@ -866,6 +888,40 @@ void Glut::drawArcball()
 #endif
 }
 
+void Glut::drawTracks()
+{
+	auto tracksCenters = m_Glut->getScene3d().getReconstructor().trackCenters;
+	for (int i = 0; i < 4; i++)
+	{
+		glBegin(GL_LINE_STRIP);
+
+		// fixed voxel color based on voxel label
+		if (i == 0) // label zero is grey
+		{
+			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+		}
+		if (i == 1) // label one is red
+		{
+			glColor4f(0.8f, 0.2f, 0.2f, 0.5f);
+		}
+		if (i == 2) // label two is green
+		{
+			glColor4f(0.2f, 0.8f, 0.2f, 0.5f);
+		}
+		if (i == 3) // label three is blue
+		{
+			glColor4f(0.2f, 0.2f, 0.8f, 0.5f);
+		}
+
+		for (int j = 0; j < tracksCenters.size(); j++)
+		{
+			glVertex3f(tracksCenters[j][i].x, tracksCenters[j][i].y, 0);
+		}
+
+		glEnd();
+	}
+}
+
 /**
  * Draw all visible voxels
  */
@@ -884,7 +940,24 @@ void Glut::drawVoxels()
 		vector<Reconstructor::Voxel*> voxels = m_Glut->getScene3d().getReconstructor().getVisibleVoxels();
 		for (size_t v = 0; v < voxels.size(); v++)
 		{
-			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+			// fixed voxel color based on voxel label
+			if (voxels[v]->label == 0) // label zero is grey
+			{
+				glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
+			}
+			if (voxels[v]->label == 1) // label one is red
+			{
+				glColor4f(0.8f, 0.2f, 0.2f, 0.5f);
+			}
+			if (voxels[v]->label == 2) // label two is green
+			{
+				glColor4f(0.2f, 0.8f, 0.2f, 0.5f);
+			}
+			if (voxels[v]->label == 3) // label three is blue
+			{
+				glColor4f(0.2f, 0.2f, 0.8f, 0.5f);
+			}
+
 			glVertex3f((GLfloat)voxels[v]->x, (GLfloat)voxels[v]->y, (GLfloat)voxels[v]->z);
 		}
 	}

@@ -38,6 +38,7 @@ public:
 		cv::Scalar color;                          // Color
 		std::vector<cv::Point> camera_projection;  // Projection location for camera[c]'s FoV (2D)
 		std::vector<int> valid_camera_projection;  // Flag if camera projection is in camera[c]'s FoV
+		int label;								   // Voxel label
 	};
 
 private:
@@ -45,7 +46,9 @@ private:
 	const int m_height;                     // Cube half-space height from floor to ceiling
 	const int m_step;                       // Step size (space between voxels)
 	const int m_width;						// Separate width from height
+	const int m_clusterCount;				// Number of clusters
 
+	std::vector<cv::Point2f> m_clusterCenters;	// Cluster center, for drawing the path
 	std::vector<cv::Point3f*> m_corners;    // Cube half-space corner locations
 
 	size_t m_voxels_amount;                 // Voxel count
@@ -103,6 +106,11 @@ public:
 	}
 
 	///user added helper functions
+	// returns cluster count
+	int getClusterCount() const
+	{
+		return m_clusterCount;
+	}
 	// returns scene length
 	int getWidth() const
 	{
@@ -118,6 +126,11 @@ public:
 	{
 		return m_mesh;
 	}
+	// track center points
+	std::vector<std::vector<cv::Point2f>> trackCenters;
+	// label clustering
+	void labelClusters(bool isFirstFrame);
+
 };
 
 } /* namespace nl_uu_science_gmt */
