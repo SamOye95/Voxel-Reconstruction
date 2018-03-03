@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "../utilities/General.h"
+#include "../utilities/lodepng.h"
 #include "arcball.h"
 #include "Camera.h"
 #include "Reconstructor.h"
@@ -611,6 +612,8 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() > scene3d.getNumberOfFrames() - 2)
 	{
+
+		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, scene3d.getReconstructor().getWidth() , scene3d.getReconstructor().getWidth());
 		// Go to the start of the video if we've moved beyond the end
 		scene3d.setCurrentFrame(0);
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
@@ -891,6 +894,9 @@ void Glut::drawArcball()
 void Glut::drawTracks()
 {
 	auto tracksCenters = m_Glut->getScene3d().getReconstructor().trackCenters;
+
+	int w = m_Glut->getScene3d().getReconstructor().getWidth();
+
 	for (int i = 0; i < 4; i++)
 	{
 		glBegin(GL_LINE_STRIP);
@@ -915,6 +921,10 @@ void Glut::drawTracks()
 
 		for (int j = 0; j < tracksCenters.size(); j++)
 		{
+
+			// Write red color for every trajectory
+			//m_Glut->getScene3d().floor_image[4 * w * tracksCenters[j][i].y + 4 * tracksCenters[j][i].x + 0] = 200;
+
 			glVertex3f(tracksCenters[j][i].x, tracksCenters[j][i].y, 0);
 		}
 
