@@ -22,12 +22,12 @@ public:
 		hist.at<int>(2, floor(b / binCount)) += 1;
 	}
 
-	int compare(ColorModel *model2) 
+	int compare(ColorModel& model2) 
 	{
 		int sumDiff = 0;
 		for (int i = 0; i < hist.rows; i++) {
 			const int* hist_i = hist.ptr<const int>(i);
-			const int* hist2_i = model2->hist.ptr<const int>(i);
+			const int* hist2_i = model2.hist.ptr<const int>(i);
 			for (int j = 0; j < hist.cols; j++)
 				sumDiff += abs(hist_i[j] - hist2_i[j]);
 		}

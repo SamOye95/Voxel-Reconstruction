@@ -359,8 +359,35 @@ void Reconstructor::determineLabels(vector<int>& labels) {
 	for (ColorModel& model : originalColorModels) {
 		string filename = "person " + to_string(i) + " color model.txt";
 		model.load(filename.c_str());
+		
 		i++;
 	}
+
+	vector<bool> labelIsUsed{ 0, 0, 0, 0 };
+
+	i = 0;
+	for (ColorModel& currModel : onScreenColorModels) {
+		int minDiff = std::numeric_limits<int>::max();
+		int minDiffModelIndex;
+
+		int k = 0;
+		for (ColorModel& origModel : originalColorModels)
+		{
+			if (!labelIsUsed[k]) {
+				int diff = origModel.compare(currModel);
+				if (diff < minDiff) {
+					minDiff = diff;
+					minDiffModelIndex = k;
+				}
+			}
+			k++;
+		}
+		labels[i] = minDiffModelIndex;
+		i++;
+	}
+
+
+
 
 }
 } /* namespace nl_uu_science_gmt */

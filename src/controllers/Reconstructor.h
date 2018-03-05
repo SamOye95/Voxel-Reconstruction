@@ -137,7 +137,7 @@ public:
 
 	void createColorModels(std::vector<ColorModel> & models);
 
-	void determineLabels(vector<int>& labels);
+	void determineLabels(std::vector<int>& labels);
 
 };
 
