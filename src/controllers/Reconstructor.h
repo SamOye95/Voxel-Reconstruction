@@ -133,9 +133,11 @@ public:
 	// label clustering
 	void labelClusters(bool isFirstFrame);
 
-	void Reconstructor::createAndSaveColorModels();
+	void createAndSaveColorModels();
 
-	void Reconstructor::createColorModels(std::vector<ColorModel> & models);
+	void createColorModels(std::vector<ColorModel> & models);
+
+	void determineLabels(vector<int>& labels);
 
 };
 

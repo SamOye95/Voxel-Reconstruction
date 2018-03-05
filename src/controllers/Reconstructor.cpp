@@ -320,12 +320,13 @@ void Reconstructor::createAndSaveColorModels() {
 }
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
-	for (int i = 0; i < 4; ++i) 
+	for (int i = 0; i < 4; ++i)
 	{
 		Mat clusterMask = Mat::zeros(m_cameras[0]->getSize(), CV_8U);
 		Mat zBuffer = Mat::zeros(m_cameras[0]->getSize(), CV_32F);
-		
-		for (Voxel *v : m_visible_voxels) {
+
+		for (Voxel *v : m_visible_voxels)
+		{
 			Point proj = v->camera_projection[i];
 			uchar voxLabel = v->label;
 			uchar maskLabel = clusterMask.at<uchar>(proj);
@@ -336,7 +337,8 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 			}
 		}
 		Mat foreg = m_cameras[i]->getFrame();
-		for (int j = 0; j < foreg.rows; ++j) {
+		for (int j = 0; j < foreg.rows; ++j)
+		{
 			for (int k = 0; k < foreg.cols; ++k) {
 				char label = clusterMask.at<uchar>(j, k);
 				if (label != 0) {
@@ -345,6 +347,19 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 				}
 			}
 		}
+	}
+}
+
+void Reconstructor::determineLabels(vector<int>& labels) {
+	vector<ColorModel> onScreenColorModels(4); 
+	createColorModels(onScreenColorModels);
+	vector<ColorModel> originalColorModels(4);
+
+	int i = 1;
+	for (ColorModel& model : originalColorModels) {
+		string filename = "person " + to_string(i) + " color model.txt";
+		model.load(filename.c_str());
+		i++;
 	}
 
 }
