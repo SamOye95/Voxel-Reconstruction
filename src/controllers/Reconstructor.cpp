@@ -295,7 +295,7 @@ void Reconstructor::createAndSaveColorModels() {
 	createColorModels(models);
 
 	int i = 1;
-	for (ColorModel model : models) {
+	for (ColorModel& model : models) {
 		string filename = "person " + to_string(i) + " color model.txt";
 		model.save(filename.c_str());
 		i++;

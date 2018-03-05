@@ -10,22 +10,24 @@ typedef unsigned char uchar;
 class ColorModel {
 public: 
 	ColorModel(int binCount = 8) {
-		hist = cv::Mat::zeros(3, 256 / binCount, CV_8UC1);
+		hist = cv::Mat::zeros(3, 256 / binCount, CV_32SC1);
+		this->binSize = 256 / binCount;
+		this->binCount = binCount;
 	}
 
-
-
-	void addPoint(uchar r, uchar g, uchar b) {
-		hist.at<uchar>(0, floor(r / 255)) += 1;
-		hist.at<uchar>(1, floor(g / 255)) += 1;
-		hist.at<uchar>(2, floor(b / 255)) += 1;
+	void addPoint(int r, int g, int b) 
+	{
+		hist.at<int>(0, floor(r / binCount)) += 1;
+		hist.at<int>(1, floor(g / binCount)) += 1;
+		hist.at<int>(2, floor(b / binCount)) += 1;
 	}
 
-	int compare(ColorModel *model2) {
+	int compare(ColorModel *model2) 
+	{
 		int sumDiff = 0;
 		for (int i = 0; i < hist.rows; i++) {
-			const uchar* hist_i = hist.ptr<const uchar>(i);
-			const uchar* hist2_i = model2->hist.ptr<const uchar>(i);
+			const int* hist_i = hist.ptr<const int>(i);
+			const int* hist2_i = model2->hist.ptr<const int>(i);
 			for (int j = 0; j < hist.cols; j++)
 				sumDiff += abs(hist_i[j] - hist2_i[j]);
 		}
@@ -34,19 +36,20 @@ public:
 
 	void save(const char * file) {
 		std::ofstream outFile(file);
-		if (!outFile.is_open()) {
-			printf("no");
-		};
 
+		if (!outFile.is_open()) {
+			printf("File could not be opened.");
+		};
 		for (int i = 0; i < hist.rows; i++)
 		{
-			const uchar* hist_i = hist.ptr<const uchar>(i);
-
 			for (int j = 0; j < hist.cols; j++)
 			{
-				outFile << hist_i[j] << ' ';
+				outFile << hist.at<int>(i, j) << " ";
+				// eg:
+				// outFile << "i :" << i << ", j :" << j << " = " << hist.at<int>(i, j) << " \n"; 
 			}
 		}
+
 		outFile << "/n";
 		outFile.flush();
 		outFile.close();
@@ -56,7 +59,7 @@ public:
 		std::ifstream inFile(file);
 		for (int i = 0; i < hist.rows; i++)
 		{
-			uchar* hist_i = hist.ptr<uchar>(i);
+			int* hist_i = hist.ptr<int>(i);
 
 			for (int j = 0; j < hist.cols; j++)
 			{
@@ -66,6 +69,7 @@ public:
 		inFile.close();
 	}
 
-public:
+protected:
 	cv::Mat hist;
+	int binSize, binCount;
 };
