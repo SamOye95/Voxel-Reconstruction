@@ -9,6 +9,7 @@
 #define RECONSTRUCTOR_H_
 
 #include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <stddef.h>
 #include <vector>
 
@@ -131,6 +132,10 @@ public:
 	std::vector<std::vector<cv::Point2f>> trackCenters;
 	// label clustering
 	void labelClusters(bool isFirstFrame);
+
+	void Reconstructor::createAndSaveColorModels();
+
+	void Reconstructor::createColorModels(std::vector<ColorModel> & models);
 
 };
 

@@ -297,4 +297,55 @@ void Reconstructor::update()
 	surfaceExtractor.execute();
 }
 
+
+void Reconstructor::createAndSaveColorModels() {
+	vector<ColorModel> models;
+
+	for (int i = 0; i < 4; i++ )
+	{
+		models.push_back(ColorModel());
+	}
+	
+
+	createColorModels(models);
+
+	int i = 1;
+	for (ColorModel model : models) {
+		string filename = "person " + to_string(i) + " color model.txt";
+		model.save(filename.c_str());
+		i++;
+	}
+
+
+}
+void Reconstructor::createColorModels(vector<ColorModel> & models)
+{
+	for (int i = 0; i < 4; ++i) 
+	{
+		Mat clusterMask = Mat::zeros(m_cameras[0]->getSize(), CV_8U);
+		Mat zBuffer = Mat::zeros(m_cameras[0]->getSize(), CV_32F);
+		
+		for (Voxel *v : m_visible_voxels) {
+			Point proj = v->camera_projection[i];
+			uchar voxLabel = v->label;
+			uchar maskLabel = clusterMask.at<uchar>(proj);
+			float dist = norm(m_cameras[i]->getCameraLocation() - Point3f(v->x, v->y, v->z));
+			if (maskLabel == 0 || dist < zBuffer.at<float>(proj)) {
+				circle(zBuffer, proj, 3, Scalar(dist), -1);
+				circle(clusterMask, proj, 3, Scalar(voxLabel + 1), -1);
+			}
+		}
+		Mat foreg = m_cameras[i]->getFrame();
+		for (int j = 0; j < foreg.rows; ++j) {
+			for (int k = 0; k < foreg.cols; ++k) {
+				char label = clusterMask.at<uchar>(j, k);
+				if (label != 0) {
+					Vec3b color = foreg.at<Vec3b>(j, k);
+					models[label - 1].addPoint(color[0], color[1], color[2]);
+				}
+			}
+		}
+	}
+
+}
 } /* namespace nl_uu_science_gmt */

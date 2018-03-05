@@ -297,6 +297,13 @@ void Glut::keyboard(
 		{
 			drawMesh = !drawMesh;
 		}
+
+		// create and save color models
+		else if (key == 'l' || key == 'L')
+		{
+			scene3d.getReconstructor().createAndSaveColorModels();
+		}
+
 		else if (key == 'p' || key == 'P')
 		{
 			bool paused = scene3d.isPaused();
