@@ -22,13 +22,6 @@
 namespace nl_uu_science_gmt
 {
 
-struct rgba {
-		unsigned char red;
-		unsigned char green;
-		unsigned char blue;
-		unsigned char alpha;
-};
-
 class Scene3DRenderer
 {
 	Reconstructor &m_reconstructor;          // Reference to Reconstructor
@@ -88,8 +81,6 @@ class Scene3DRenderer
 	// edge points of the virtual ground floor grid
 	std::vector<std::vector<cv::Point3i*> > m_floor_grid;
 
-	
-
 	void createFloorGrid();
 
 #ifdef _WIN32
@@ -97,8 +88,6 @@ class Scene3DRenderer
 #endif
 
 public:
-	std::vector<unsigned char> floor_image;
-
 	Scene3DRenderer(
 			Reconstructor &, const std::vector<Camera*> &);
 	virtual ~Scene3DRenderer();
@@ -163,11 +152,6 @@ public:
 	bool isShowGrdFlr() const
 	{
 		return m_show_grd_flr;
-	}
-
-	std::vector<unsigned char>* getFloorImage() {
-
-		return &floor_image;
 	}
 
 	void setShowGrdFlr(
@@ -486,6 +470,14 @@ public:
 	{
 		autoParameters = !autoParameters;
 	}
+
+	std::vector<unsigned char> floor_image;
+
+	std::vector<unsigned char>* getFloorImage()
+	{
+		return &floor_image;
+	}
+
 };
 
 } /* namespace nl_uu_science_gmt */
