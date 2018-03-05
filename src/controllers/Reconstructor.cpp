@@ -210,14 +210,6 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 				m_visible_voxels.pop_back();
 			}
 		}
-
-		std::vector<int> assignedLabels = { 0, 1, 2, 3 };
-		assignLabels(assignedLabels);
-
-		for (int i = 0; i < m_visible_voxels.size(); i++)
-		{
-			m_visible_voxels[i]->label = labels[i] = assignedLabels[m_visible_voxels[i]->label];
-		}
 	}
 	else
 	{
@@ -225,14 +217,13 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 		kmeans(points, m_clusterCount, labels,
 			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
 			1, KMEANS_USE_INITIAL_LABELS, centers);
-
-		// set path tracker centers by calculating the cluster centers
-		for (int i = 0; i < m_clusterCount; i++)
-		{
-			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
-		}
 	}
 	
+	// set path tracker centers by calculating the cluster centers
+	for (int i = 0; i < m_clusterCount; i++)
+	{
+		m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
+	}	
 	trackCenters.push_back(m_clusterCenters);
 }
 
@@ -307,26 +298,26 @@ void Reconstructor::update()
 }
 
 
-void Reconstructor::createAndSaveColorModels()
-{
+void Reconstructor::createAndSaveColorModels() {
 	vector<ColorModel> models;
 
 	for (int i = 0; i < 4; i++ )
 	{
 		models.push_back(ColorModel());
-	}	
+	}
+	
 
 	createColorModels(models);
 
 	int i = 1;
-	for (ColorModel& model : models)
-	{
+	for (ColorModel& model : models) {
 		string filename = "person " + to_string(i) + " color model.txt";
 		model.save(filename.c_str());
 		i++;
 	}
-}
 
+
+}
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
 	for (int i = 0; i < 4; ++i)
@@ -359,62 +350,44 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 	}
 }
 
-void Reconstructor::assignLabels(vector<int>& labels)
-{
+void Reconstructor::determineLabels(vector<int>& labels) {
 	vector<ColorModel> onScreenColorModels(4); 
 	createColorModels(onScreenColorModels);
 	vector<ColorModel> originalColorModels(4);
 
 	int i = 1;
-	for (ColorModel& model : originalColorModels)
-	{
+	for (ColorModel& model : originalColorModels) {
 		string filename = "person " + to_string(i) + " color model.txt";
 		model.load(filename.c_str());
+		
 		i++;
 	}
 
-	std::set<int> freeLabels = { 0, 1, 2, 3 };
-	int res[4];
-	float minErr = 1000.0;
-	
-	for (int i : freeLabels)
-	{
-		res[0] = i;
-		std::set<int> freeLabels2 = freeLabels;
-		freeLabels2.erase(i);
-		
-		for (int j : freeLabels2)
+	vector<bool> labelIsUsed{ 0, 0, 0, 0 };
+
+	i = 0;
+	for (ColorModel& currModel : onScreenColorModels) {
+		int minDiff = std::numeric_limits<int>::max();
+		int minDiffModelIndex;
+
+		int k = 0;
+		for (ColorModel& origModel : originalColorModels)
 		{
-			res[1] = j;
-			std::set<int> freeLabels3 = freeLabels2;
-			freeLabels3.erase(j);
-			
-			for (int k : freeLabels3)
-			{
-				res[2] = k;
-				std::set<int> freeLabels4 = freeLabels3;
-				freeLabels4.erase(k);
-				
-				for (int m : freeLabels4)
-				{
-					res[3] = m;
-					float err = onScreenColorModels[0].compare(&originalColorModels[res[0]]);
-					err += onScreenColorModels[1].compare(&originalColorModels[res[1]]);
-					err += onScreenColorModels[2].compare(&originalColorModels[res[2]]);
-					err += onScreenColorModels[3].compare(&originalColorModels[res[3]]);
-					
-					if (err < minErr)
-					{
-						minErr = err;
-						for (int v = 0; v < 4; v++)
-						{
-							labels[v] = res[v];
-						}
-					}
+			if (!labelIsUsed[k]) {
+				int diff = origModel.compare(currModel);
+				if (diff < minDiff) {
+					minDiff = diff;
+					minDiffModelIndex = k;
 				}
 			}
+			k++;
 		}
+		labels[i] = minDiffModelIndex;
+		i++;
 	}
-}
 
+
+
+
+}
 } /* namespace nl_uu_science_gmt */
