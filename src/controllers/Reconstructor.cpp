@@ -193,7 +193,22 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 		// fill the label based on kmeans calculation
 		for (int i = 0; i < m_visible_voxels.size(); i++)
 		{
-			m_visible_voxels[i]->label = labels[i];
+			//m_visible_voxels[i]->label = labels[i];
+
+			float distance = norm(
+				Point(m_visible_voxels[i]->x, m_visible_voxels[i]->y) - 
+				Point(centers.at<float>(labels[i], 0), centers.at<float>(labels[i], 1))
+			);
+
+			if (distance < 600)
+			{
+				m_visible_voxels[i]->label = labels[i];
+			}
+			else
+			{
+				m_visible_voxels[i] = *m_visible_voxels.rbegin();
+				m_visible_voxels.pop_back();
+			}
 		}
 	}
 	else
