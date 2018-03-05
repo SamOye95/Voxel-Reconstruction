@@ -9,9 +9,11 @@ typedef unsigned char uchar;
 
 class ColorModel {
 public: 
-	ColorModel(int binCount) {
+	ColorModel(int binCount = 8) {
 		hist = cv::Mat::zeros(3, 256 / binCount, CV_8UC1);
 	}
+
+
 
 	void addPoint(uchar r, uchar g, uchar b) {
 		hist.at<uchar>(0, floor(r / 255)) += 1;
@@ -32,13 +34,17 @@ public:
 
 	void save(const char * file) {
 		std::ofstream outFile(file);
+		if (!outFile.is_open()) {
+			printf("no");
+		};
+
 		for (int i = 0; i < hist.rows; i++)
 		{
 			const uchar* hist_i = hist.ptr<const uchar>(i);
 
 			for (int j = 0; j < hist.cols; j++)
 			{
-			outFile << hist_i[j] << ' ';
+				outFile << hist_i[j] << ' ';
 			}
 		}
 		outFile << "/n";
