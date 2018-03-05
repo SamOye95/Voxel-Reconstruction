@@ -22,13 +22,6 @@
 namespace nl_uu_science_gmt
 {
 
-struct rgba {
-		unsigned char red;
-		unsigned char green;
-		unsigned char blue;
-		unsigned char alpha;
-};
-
 class Scene3DRenderer
 {
 	Reconstructor &m_reconstructor;          // Reference to Reconstructor

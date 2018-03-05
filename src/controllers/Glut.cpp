@@ -612,28 +612,17 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() > scene3d.getNumberOfFrames() - 2)
 	{
-		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192);
+		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 		// Go to the start of the video if we've moved beyond the end
 		scene3d.setCurrentFrame(0);
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
 	}
+
 	//png debug
-	if (scene3d.getCurrentFrame() == 1000) {
+	if (scene3d.getCurrentFrame() == 500) {
 		
-		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192);
-	//	/*for (unsigned y = 0; y < 192; y++)
-	//	{
-	//		for (unsigned x = 0; x < 192; x++)
-	//		{
-	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 0] = 255 * !(x & y);
-	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 1] = x ^ y;
-	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 2] = x | y;
-	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 3] = 255;
-	//		}
-	//	}*/
-	//	
-	//	
+		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 
 	}
 
@@ -925,21 +914,27 @@ void Glut::drawTracks()
 		// fixed voxel color based on voxel label
 		if (i == 0) // label zero is grey
 		{
-			red = green = blue = 150;
+			red = green = blue = 155;
 			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		}
 		if (i == 1) // label one is red
 		{
 			red = 255;
+			green = 100;
+			blue = 100;
 			glColor4f(0.8f, 0.2f, 0.2f, 0.5f);
 		}
 		if (i == 2) // label two is green
 		{
+			red = 100;
 			green = 255;
+			blue = 100;
 			glColor4f(0.2f, 0.8f, 0.2f, 0.5f);
 		}
 		if (i == 3) // label three is blue
 		{
+			red = 100;
+			green = 100;
 			blue = 255;
 			glColor4f(0.2f, 0.2f, 0.8f, 0.5f);
 		}
