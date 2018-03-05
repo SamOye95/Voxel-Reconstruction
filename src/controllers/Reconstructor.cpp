@@ -210,6 +210,14 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 				m_visible_voxels.pop_back();
 			}
 		}
+
+		std::vector<int> assignedLabels = { 0, 0, 0, 0 };
+		assignLabels(assignedLabels);
+
+		for (int i = 0; i < m_visible_voxels.size(); i++)
+		{
+			m_visible_voxels[i]->label = labels[i] = assignedLabels[m_visible_voxels[i]->label];
+		}
 	}
 	else
 	{
@@ -217,13 +225,14 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 		kmeans(points, m_clusterCount, labels,
 			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
 			1, KMEANS_USE_INITIAL_LABELS, centers);
+
+		// set path tracker centers by calculating the cluster centers
+		for (int i = 0; i < m_clusterCount; i++)
+		{
+			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
+		}
 	}
 	
-	// set path tracker centers by calculating the cluster centers
-	for (int i = 0; i < m_clusterCount; i++)
-	{
-		m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
-	}	
 	trackCenters.push_back(m_clusterCenters);
 }
 
@@ -281,24 +290,25 @@ void Reconstructor::update()
 	m_visible_voxels.insert(m_visible_voxels.end(), visible_voxels.begin(), visible_voxels.end());
 
 	///added user function
-	//Fill volume data by looping through all visible voxels
-	//int m_size = m_height / m_step;
-	//SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(m_size * 2, m_size * 2, m_size)));	
-	int size_h = m_height / m_step;
-	int size_w = m_width / m_step;
-	SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(size_w, size_w, size_h)));
-	for (size_t v = 0; v < visible_voxels.size(); v++)
+	if (drawMesh)
 	{
-		//volData.setVoxelAt(visible_voxels[v]->x / m_step + m_size, visible_voxels[v]->y / m_step + m_size, visible_voxels[v]->z / m_step + 1, 255);
-		volData.setVoxelAt(visible_voxels[v]->x / m_step + size_w / 2, visible_voxels[v]->y / m_step + size_w / 2, visible_voxels[v]->z / m_step + 1, 255);
+		//Fill volume data by looping through all visible voxels
+		int size_h = m_height / m_step;
+		int size_w = m_width / m_step;
+		SimpleVolume<uint8_t> volData(Region(Vector3DInt32(0, 0, 0), Vector3DInt32(size_w, size_w, size_h)));
+		for (size_t v = 0; v < visible_voxels.size(); v++)
+		{
+			volData.setVoxelAt(visible_voxels[v]->x / m_step + size_w / 2, visible_voxels[v]->y / m_step + size_w / 2, visible_voxels[v]->z / m_step + 1, 255);
+		}
+
+		//Convert volume data to triangle mesh
+		MarchingCubesSurfaceExtractor<SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
+		surfaceExtractor.execute();
 	}
-	//Convert volume data to triangle mesh
-	MarchingCubesSurfaceExtractor<SimpleVolume<uint8_t>> surfaceExtractor(&volData, volData.getEnclosingRegion(), &m_mesh);
-	surfaceExtractor.execute();
 }
 
-
-void Reconstructor::createAndSaveColorModels() {
+void Reconstructor::createAndSaveColorModels()
+{
 	vector<ColorModel> models;
 
 	for (int i = 0; i < 4; i++ )
@@ -306,18 +316,17 @@ void Reconstructor::createAndSaveColorModels() {
 		models.push_back(ColorModel());
 	}
 	
-
 	createColorModels(models);
 
 	int i = 1;
-	for (ColorModel& model : models) {
+	for (ColorModel& model : models)
+	{
 		string filename = "person " + to_string(i) + " color model.txt";
 		model.save(filename.c_str());
 		i++;
 	}
-
-
 }
+
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
 	for (int i = 0; i < 4; ++i)
@@ -327,22 +336,25 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 
 		for (Voxel *v : m_visible_voxels)
 		{
-			Point proj = v->camera_projection[i];
-			uchar voxLabel = v->label;
-			uchar maskLabel = clusterMask.at<uchar>(proj);
-			float dist = norm(m_cameras[i]->getCameraLocation() - Point3f(v->x, v->y, v->z));
-			if (maskLabel == 0 || dist < zBuffer.at<float>(proj)) {
-				circle(zBuffer, proj, 3, Scalar(dist), -1);
-				circle(clusterMask, proj, 3, Scalar(voxLabel + 1), -1);
+			Point projection = v->camera_projection[i];
+			uchar voxelLabel = v->label;
+			uchar maskLabel = clusterMask.at<uchar>(projection);
+			float distance = norm(m_cameras[i]->getCameraLocation() - Point3f(v->x, v->y, v->z));
+			if (maskLabel == 0 || distance < zBuffer.at<float>(projection))
+			{
+				circle(zBuffer, projection, 3, Scalar(distance), -1);
+				circle(clusterMask, projection, 3, Scalar(voxelLabel + 1), -1);
 			}
 		}
-		Mat foreg = m_cameras[i]->getFrame();
-		for (int j = 0; j < foreg.rows; ++j)
+		Mat foreground = m_cameras[i]->getFrame();
+		for (int j = 0; j < foreground.rows; ++j)
 		{
-			for (int k = 0; k < foreg.cols; ++k) {
+			for (int k = 0; k < foreground.cols; ++k)
+			{
 				char label = clusterMask.at<uchar>(j, k);
-				if (label != 0) {
-					Vec3b color = foreg.at<Vec3b>(j, k);
+				if (label != 0)
+				{
+					Vec3b color = foreground.at<Vec3b>(j, k);
 					models[label - 1].addPoint(color[0], color[1], color[2]);
 				}
 			}
@@ -350,44 +362,45 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 	}
 }
 
-void Reconstructor::determineLabels(vector<int>& labels) {
-	vector<ColorModel> onScreenColorModels(4); 
-	createColorModels(onScreenColorModels);
+void Reconstructor::assignLabels(vector<int>& labels)
+{
+	vector<ColorModel> onScreenColorModels(4);
 	vector<ColorModel> originalColorModels(4);
+	createColorModels(onScreenColorModels);
 
 	int i = 1;
-	for (ColorModel& model : originalColorModels) {
+	for (ColorModel& model : originalColorModels)
+	{
 		string filename = "person " + to_string(i) + " color model.txt";
-		model.load(filename.c_str());
-		
+		model.load(filename.c_str());		
 		i++;
 	}
 
-	vector<bool> labelIsUsed{ 0, 0, 0, 0 };
+	vector<bool> isLabelUsed{ 0, 0, 0, 0 };
 
 	i = 0;
-	for (ColorModel& currModel : onScreenColorModels) {
-		int minDiff = std::numeric_limits<int>::max();
-		int minDiffModelIndex;
+	for (ColorModel& currModel : onScreenColorModels)
+	{
+		int minDifference = std::numeric_limits<int>::max();
+		int minDifferenceModelIndex;
 
 		int k = 0;
 		for (ColorModel& origModel : originalColorModels)
 		{
-			if (!labelIsUsed[k]) {
-				int diff = origModel.compare(currModel);
-				if (diff < minDiff) {
-					minDiff = diff;
-					minDiffModelIndex = k;
+			if (!isLabelUsed[k])
+			{
+				int difference = origModel.compare(currModel);
+				if (difference < minDifference)
+				{
+					minDifference = difference;
+					minDifferenceModelIndex = k;
 				}
 			}
 			k++;
 		}
-		labels[i] = minDiffModelIndex;
+		labels[i] = minDifferenceModelIndex;
 		i++;
 	}
-
-
-
-
 }
+
 } /* namespace nl_uu_science_gmt */

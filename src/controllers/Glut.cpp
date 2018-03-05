@@ -295,6 +295,7 @@ void Glut::keyboard(
 		//option to toggle mesh drawing
 		else if (key == 'd' || key == 'D')
 		{
+			scene3d.getReconstructor().drawMesh = !scene3d.getReconstructor().drawMesh;
 			drawMesh = !drawMesh;
 		}
 
