@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Camera.h"
+#include "../ColorModel.h"
 
 //PolyVox libraries
 #include "PolyVoxCore/MaterialDensityPair.h"
