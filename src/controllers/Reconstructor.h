@@ -128,16 +128,12 @@ public:
 	{
 		return m_mesh;
 	}
-	// track center points
-	std::vector<std::vector<cv::Point2f>> trackCenters;
-	// label clustering
-	void labelClusters(bool isFirstFrame);
-
-	void createAndSaveColorModels();
-
-	void createColorModels(std::vector<ColorModel> & models);
-
-	void determineLabels(vector<int>& labels);
+	
+	std::vector<std::vector<cv::Point2f>> trackCenters;			// track center points
+	void labelClusters(bool isFirstFrame);						// label clustering
+	void createAndSaveColorModels();							// create and save color models
+	void createColorModels(std::vector<ColorModel> & models);	// create color models
+	void assignLabels(std::vector<int>& labels);				// set labels based on color models
 
 };
 
