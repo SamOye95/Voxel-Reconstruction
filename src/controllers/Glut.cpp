@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "../utilities/General.h"
+#include "../utilities/lodepng.h"
 #include "arcball.h"
 #include "Camera.h"
 #include "Reconstructor.h"
@@ -611,11 +612,31 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() > scene3d.getNumberOfFrames() - 2)
 	{
+		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192);
 		// Go to the start of the video if we've moved beyond the end
 		scene3d.setCurrentFrame(0);
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
 	}
+	//png debug
+	if (scene3d.getCurrentFrame() == 1000) {
+		
+		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192);
+	//	/*for (unsigned y = 0; y < 192; y++)
+	//	{
+	//		for (unsigned x = 0; x < 192; x++)
+	//		{
+	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 0] = 255 * !(x & y);
+	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 1] = x ^ y;
+	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 2] = x | y;
+	//			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 3] = 255;
+	//		}
+	//	}*/
+	//	
+	//	
+
+	}
+
 	if (scene3d.getCurrentFrame() < 0)
 	{
 		// Go to the end of the video if we've moved before the start
@@ -891,6 +912,12 @@ void Glut::drawArcball()
 void Glut::drawTracks()
 {
 	auto tracksCenters = m_Glut->getScene3d().getReconstructor().trackCenters;
+
+	int w = m_Glut->getScene3d().getReconstructor().getWidth() / m_Glut->getScene3d().getReconstructor().getStep();
+
+	unsigned char red, green, blue = 0;
+	unsigned char alpha = 255;
+
 	for (int i = 0; i < 4; i++)
 	{
 		glBegin(GL_LINE_STRIP);
@@ -898,23 +925,39 @@ void Glut::drawTracks()
 		// fixed voxel color based on voxel label
 		if (i == 0) // label zero is grey
 		{
+			red = green = blue = 150;
 			glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
 		}
 		if (i == 1) // label one is red
 		{
+			red = 255;
 			glColor4f(0.8f, 0.2f, 0.2f, 0.5f);
 		}
 		if (i == 2) // label two is green
 		{
+			green = 255;
 			glColor4f(0.2f, 0.8f, 0.2f, 0.5f);
 		}
 		if (i == 3) // label three is blue
 		{
+			blue = 255;
 			glColor4f(0.2f, 0.2f, 0.8f, 0.5f);
 		}
 
 		for (int j = 0; j < tracksCenters.size(); j++)
 		{
+
+			// Write red color for every trajectory
+			//m_Glut->getScene3d().floor_image[4 * w * tracksCenters[j][i].y + 4 * tracksCenters[j][i].x + 0] = 200;
+
+			int y = ((int) tracksCenters[j][i].y / m_Glut->getScene3d().getReconstructor().getStep()) + 96;
+			int x = ((int) tracksCenters[j][i].x / m_Glut->getScene3d().getReconstructor().getStep()) + 96;
+
+			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 0] = red;
+			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 1] = green;
+			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 2] = blue;
+			m_Glut->getScene3d().floor_image[4 * 192 * y + 4 * x + 3] = alpha;
+
 			glVertex3f(tracksCenters[j][i].x, tracksCenters[j][i].y, 0);
 		}
 
