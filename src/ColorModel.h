@@ -3,6 +3,7 @@
 #include <opencv2/core/mat.hpp>
 #include <xtgmath.h>
 #include <fstream>
+#include <ios>
 
 typedef unsigned char uchar;
 
@@ -39,7 +40,11 @@ public:
 
 	void save(const char * file)
 	{
-		std::ofstream outFile(file);
+		std::fstream outFile;
+
+		//Overwrite the current color model by opening with trunc flag.
+		outFile.open(file, std::ios::out | std::ios::trunc);
+
 		if (!outFile.is_open())
 		{
 			printf("File could not be opened.");
