@@ -322,6 +322,9 @@ void Reconstructor::update()
 	}
 }
 
+/**	Initializes, creates and saves to disk a ColorModel for 
+*	every cluster in the Reconstructor. 
+*/
 void Reconstructor::createAndSaveColorModels()
 {
 	vector<ColorModel> models;
@@ -342,13 +345,16 @@ void Reconstructor::createAndSaveColorModels()
 	}
 }
 
+//** create
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
+	// Loop through cameras 
 	for (int i = 0; i < m_cameras.size(); i++)
 	{
 		Mat clusterMask = Mat::zeros(m_cameras[0]->getSize(), CV_8U);
 		Mat zBuffer = Mat::zeros(m_cameras[0]->getSize(), CV_32F);
 
+		// For every visible voxel in each camera
 		for (Voxel *v : m_visible_voxels)
 		{
 			Point projection = v->camera_projection[i];
@@ -362,8 +368,12 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 				circle(clusterMask, projection, 3, Scalar(voxelLabel + 1), -1);
 			}
 		}
+
+		// Get the foreground image of the current camera and convert it to HSV colour space
 		Mat foreground = m_cameras[i]->getFrame();
 		cvtColor(foreground, foreground, COLOR_BGR2HSV);
+
+		//Add the color of the foreground pixed to the color model if it is not occluded.
 		for (int j = 0; j < foreground.rows; j++)
 		{
 			for (int k = 0; k < foreground.cols; k++)
