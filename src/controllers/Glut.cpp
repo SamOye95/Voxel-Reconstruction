@@ -285,6 +285,7 @@ void Glut::keyboard(
 		{
 			scene3d.setQuit(true);
 		}
+#pragma region added user function
 		// option to toggle auto parameters
 		else if (key == 'a' || key == 'A')
 		{
@@ -298,13 +299,12 @@ void Glut::keyboard(
 			scene3d.getReconstructor().drawMesh = !scene3d.getReconstructor().drawMesh;
 			drawMesh = !drawMesh;
 		}
-
 		// create and save color models
 		else if (key == 'l' || key == 'L')
 		{
 			scene3d.getReconstructor().createAndSaveColorModels();
 		}
-
+#pragma endregion
 		else if (key == 'p' || key == 'P')
 		{
 			bool paused = scene3d.isPaused();
@@ -650,9 +650,9 @@ void Glut::update(
 		if (scene3d.getCurrentFrame() != scene3d.getPreviousFrame() + 1)
 		{
 			isFirstFrame = true;
-			scene3d.getReconstructor().trackCenters.resize(scene3d.getCurrentFrame() - 1);
+			scene3d.getReconstructor().isClustered = false;
+			scene3d.getReconstructor().trackCenters.clear();
 		}
-
 		// If the current frame is different from the last iteration update stuff
 		scene3d.processFrame();
 		scene3d.getReconstructor().update();
@@ -904,15 +904,16 @@ void Glut::drawArcball()
 #endif
 }
 
+/**
+* Draw the tracks of the cluster movement
+*/
 void Glut::drawTracks()
 {
 	auto tracksCenters = m_Glut->getScene3d().getReconstructor().trackCenters;
-	int w = m_Glut->getScene3d().getReconstructor().getWidth() / m_Glut->getScene3d().getReconstructor().getStep();
-
 	unsigned char red, green, blue = 0;
 	unsigned char alpha = 255;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < m_Glut->getScene3d().getReconstructor().getClusterCount(); i++)
 	{
 		glBegin(GL_LINE_STRIP);
 

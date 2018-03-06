@@ -183,13 +183,8 @@ void Scene3DRenderer::processForeground(
 		threshold(foreground, foreground, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
 
 		// Improve the foreground image
-		Mat erosion_kernel = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * m_erosion_size + 1, 2 * m_erosion_size + 1),
-			Point(m_erosion_size, m_erosion_size));
-
-		Mat dilation_kernel = getStructuringElement(MORPH_ELLIPSE,
-			Size(2 * m_dilation_size + 1, 2 * m_dilation_size + 1),
-			Point(m_dilation_size, m_dilation_size));
+		Mat erosion_kernel = getStructuringElement(MORPH_ELLIPSE, Size(5, 5), Point(2, 2));
+		Mat dilation_kernel = getStructuringElement(MORPH_ELLIPSE, Size(5, 5), Point(2, 2));
 
 		dilate(foreground, foreground, dilation_kernel);
 		erode(foreground, foreground, erosion_kernel);

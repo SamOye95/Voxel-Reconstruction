@@ -30,7 +30,7 @@ Reconstructor::Reconstructor(
 				m_cameras(cs),
 				m_height(2048),
 				m_step(32),
-				// define scene width
+				// added user function
 				m_width(6144),
 				m_clusterCount(4),
 				m_clusterCenters(4)
@@ -211,13 +211,24 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 			}
 		}
 
-		std::vector<int> assignedLabels = { 0, 0, 0, 0 };
+		vector<int> assignedLabels{ 0, 0, 0, 0 };
 		assignLabels(assignedLabels);
 
 		for (int i = 0; i < m_visible_voxels.size(); i++)
 		{
 			m_visible_voxels[i]->label = labels[i] = assignedLabels[m_visible_voxels[i]->label];
 		}
+
+		kmeans(points, m_clusterCount, labels,
+			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
+			1, KMEANS_USE_INITIAL_LABELS, centers);
+
+		for (int i = 0; i < m_clusterCount; ++i)
+		{
+			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
+		}
+
+		isClustered = true;
 	}
 	else
 	{
@@ -283,7 +294,10 @@ void Reconstructor::update()
 			voxel->label = minLabel;
 
 #pragma omp critical //push_back is critical
-			visible_voxels.push_back(voxel);
+			if (minDistance < 600 || !isClustered)
+			{
+				visible_voxels.push_back(voxel);
+			}
 		}
 	}
 
@@ -311,7 +325,7 @@ void Reconstructor::createAndSaveColorModels()
 {
 	vector<ColorModel> models;
 
-	for (int i = 0; i < 4; i++ )
+	for (int i = 0; i < m_clusterCount; i++ )
 	{
 		models.push_back(ColorModel());
 	}
@@ -329,7 +343,7 @@ void Reconstructor::createAndSaveColorModels()
 
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < m_cameras.size(); i++)
 	{
 		Mat clusterMask = Mat::zeros(m_cameras[0]->getSize(), CV_8U);
 		Mat zBuffer = Mat::zeros(m_cameras[0]->getSize(), CV_32F);
@@ -347,9 +361,9 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 			}
 		}
 		Mat foreground = m_cameras[i]->getFrame();
-		for (int j = 0; j < foreground.rows; ++j)
+		for (int j = 0; j < foreground.rows; j++)
 		{
-			for (int k = 0; k < foreground.cols; ++k)
+			for (int k = 0; k < foreground.cols; k++)
 			{
 				char label = clusterMask.at<uchar>(j, k);
 				if (label != 0)

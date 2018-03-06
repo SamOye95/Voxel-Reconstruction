@@ -134,7 +134,8 @@ public:
 	void createAndSaveColorModels();							// create and save color models to file
 	void createColorModels(std::vector<ColorModel> & models);	// create color models
 	void assignLabels(std::vector<int>& labels);				// assign labels based on color models
-	bool drawMesh = false;
+	bool isClustered = false;									// if the voxels are already clustered or not
+	bool drawMesh = false;										// draw PolyVox mesh
 };
 
 } /* namespace nl_uu_science_gmt */
