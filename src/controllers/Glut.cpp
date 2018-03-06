@@ -626,15 +626,18 @@ void Glut::update(
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
 	}
-	// Draw floor image once it reaches frame 1000 or frame 2000
+	// Draw floor image once it reaches certain number of frames
 	if (scene3d.getCurrentFrame() == 1000 )
 	{
 		unsigned error = lodepng::encode("floor_1000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 	}
-
 	if (scene3d.getCurrentFrame() == 2000) 
 	{
 		unsigned error = lodepng::encode("floor_2000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
+	}
+	if (scene3d.getCurrentFrame() == 2723)
+	{
+		unsigned error = lodepng::encode("floor_final.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 	}
 
 	if (scene3d.getCurrentFrame() < 0)
