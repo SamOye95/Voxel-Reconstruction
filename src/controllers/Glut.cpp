@@ -631,10 +631,13 @@ void Glut::update(
 	{
 		unsigned error = lodepng::encode("floor_1000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 	}
-
 	if (scene3d.getCurrentFrame() == 2000) 
 	{
 		unsigned error = lodepng::encode("floor_2000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
+	}
+	if (scene3d.getCurrentFrame() == 2720)
+	{
+		unsigned error = lodepng::encode("floor_final.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 	}
 
 	if (scene3d.getCurrentFrame() < 0)
