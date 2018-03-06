@@ -212,18 +212,15 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 		// assign labels based on the saved color models
 		vector<int> assignedLabels{ 0, 0, 0, 0 };
 		assignLabels(assignedLabels);
-
 		for (int i = 0; i < m_visible_voxels.size(); i++)
 		{
 			m_visible_voxels[i]->label = labels[i] = assignedLabels[m_visible_voxels[i]->label];
 		}
 
-		// use the user-supplied labels instead of computing them from the initial centers
+		// use kmeans only to calculate the cluster centers
 		kmeans(points, m_clusterCount, labels,
 			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
 			1, KMEANS_USE_INITIAL_LABELS, centers);
-
-		// set path tracker centers by calculating the cluster centers
 		for (int i = 0; i < m_clusterCount; ++i)
 		{
 			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
@@ -233,13 +230,11 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 	}
 	else
 	{
-		// use the user-supplied labels instead of computing them from the initial centers
+		// use kmeans only to calculate the cluster centers
 		kmeans(points, m_clusterCount, labels,
 			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
 			1, KMEANS_USE_INITIAL_LABELS, centers);
-
-		// set path tracker centers by calculating the cluster centers
-		for (int i = 0; i < m_clusterCount; i++)
+		for (int i = 0; i < m_clusterCount; ++i)
 		{
 			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
 		}
