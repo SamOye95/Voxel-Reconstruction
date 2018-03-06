@@ -31,7 +31,7 @@ Reconstructor::Reconstructor(
 				m_height(2048),
 				m_step(32),
 				// added user function
-				m_width(6144),
+				m_width(7168),
 				m_clusterCount(4),
 				m_clusterCenters(4)
 {
@@ -193,14 +193,12 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 		// fill the label based on kmeans calculation
 		for (int i = 0; i < m_visible_voxels.size(); i++)
 		{
-			//m_visible_voxels[i]->label = labels[i];
-
 			float distance = norm(
 				Point(m_visible_voxels[i]->x, m_visible_voxels[i]->y) - 
 				Point(centers.at<float>(labels[i], 0), centers.at<float>(labels[i], 1))
 			);
 
-			if (distance < 500)
+			if (distance < 1000)
 			{
 				m_visible_voxels[i]->label = labels[i];
 			}
@@ -211,6 +209,7 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 			}
 		}
 
+		// assign labels based on the saved color models
 		vector<int> assignedLabels{ 0, 0, 0, 0 };
 		assignLabels(assignedLabels);
 
@@ -219,10 +218,12 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 			m_visible_voxels[i]->label = labels[i] = assignedLabels[m_visible_voxels[i]->label];
 		}
 
+		// use the user-supplied labels instead of computing them from the initial centers
 		kmeans(points, m_clusterCount, labels,
 			TermCriteria(TermCriteria::EPS + TermCriteria::COUNT, 10, 1.0),
 			1, KMEANS_USE_INITIAL_LABELS, centers);
 
+		// set path tracker centers by calculating the cluster centers
 		for (int i = 0; i < m_clusterCount; ++i)
 		{
 			m_clusterCenters[i] = Point2i(centers.at<float>(i, 0), centers.at<float>(i, 1));
@@ -294,7 +295,7 @@ void Reconstructor::update()
 			voxel->label = minLabel;
 
 #pragma omp critical //push_back is critical
-			if (minDistance < 500 || !isClustered)
+			if (minDistance < 1000 || !isClustered)
 			{
 				visible_voxels.push_back(voxel);
 			}
