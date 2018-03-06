@@ -354,6 +354,7 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 			uchar voxelLabel = v->label;
 			uchar maskLabel = clusterMask.at<uchar>(projection);
 			float distance = norm(m_cameras[i]->getCameraLocation() - Point3f(v->x, v->y, v->z));
+			
 			if (maskLabel == 0 || distance < zBuffer.at<float>(projection))
 			{
 				circle(zBuffer, projection, 3, Scalar(distance), -1);
@@ -361,6 +362,7 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 			}
 		}
 		Mat foreground = m_cameras[i]->getFrame();
+		cvtColor(foreground, foreground, COLOR_BGR2HSV);
 		for (int j = 0; j < foreground.rows; j++)
 		{
 			for (int k = 0; k < foreground.cols; k++)
@@ -409,10 +411,16 @@ void Reconstructor::assignLabels(vector<int>& labels)
 					minDifference = difference;
 					minDifferenceModelIndex = k;
 				}
+				
 			}
 			k++;
 		}
+
+		//Label the cluster appropriately
 		labels[i] = minDifferenceModelIndex;
+
+		// Set the label flag to USED
+		isLabelUsed[minDifferenceModelIndex] = true;
 		i++;
 	}
 }

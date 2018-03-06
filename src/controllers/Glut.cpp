@@ -620,16 +620,21 @@ void Glut::update(
 	}
 	if (scene3d.getCurrentFrame() > scene3d.getNumberOfFrames() - 2)
 	{
-		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192, LCT_RGBA);
+		unsigned error = lodepng::encode("floor_final_frame.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 		// Go to the start of the video if we've moved beyond the end
 		scene3d.setCurrentFrame(0);
 		for (size_t c = 0; c < scene3d.getCameras().size(); ++c)
 			scene3d.getCameras()[c]->setVideoFrame(scene3d.getCurrentFrame());
 	}
 	// Draw floor image once it reaches frame 1000 or frame 2000
-	if (scene3d.getCurrentFrame() == 1000 || scene3d.getCurrentFrame() == 2000)
+	if (scene3d.getCurrentFrame() == 1000 )
 	{
-		unsigned error = lodepng::encode("floor.png", scene3d.floor_image, 192, 192, LCT_RGBA);
+		unsigned error = lodepng::encode("floor_1000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
+	}
+
+	if (scene3d.getCurrentFrame() == 2000) 
+	{
+		unsigned error = lodepng::encode("floor_2000.png", scene3d.floor_image, 192, 192, LCT_RGBA);
 	}
 
 	if (scene3d.getCurrentFrame() < 0)
