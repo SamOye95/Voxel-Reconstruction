@@ -7,6 +7,10 @@
 
 typedef unsigned char uchar;
 
+/**		Color model class, representing a histogram based, binned color model.
+	*	Default binCount is 8. Adapts to different bin counts.
+	*	This model does not care which color representation (RGB, HSV, etc.) is fed into it. 
+	*/
 class ColorModel {
 public:
 	ColorModel(int binCount = 8)
@@ -16,6 +20,7 @@ public:
 		this->binCount = binCount;
 	}
 
+	// Adds a 3-parameter color representation point to the histogram. (RGB, HSV, etc.)
 	void addPoint(int r, int g, int b)
 	{
 		hist.at<int>(0, floor(r / binCount)) += 1;
@@ -23,6 +28,8 @@ public:
 		hist.at<int>(2, floor(b / binCount)) += 1;
 	}
 
+	// Compares the color model to another color model 
+	// using the total distance of histagram bin values
 	int compare(ColorModel& model2)
 	{
 		int sumDiff = 0;
@@ -38,6 +45,7 @@ public:
 		return sumDiff;
 	}
 
+	// Output to file
 	void save(const char * file)
 	{
 		std::fstream outFile;
@@ -63,6 +71,7 @@ public:
 		outFile.close();
 	}
 
+	// Read from disk 
 	void load(const char * file)
 	{
 		std::ifstream inFile(file);
@@ -78,6 +87,6 @@ public:
 	}
 
 protected:
-	cv::Mat hist;
-	int binSize, binCount;
+	cv::Mat hist;				// Histogram data
+	int binSize, binCount;		// bin information
 };

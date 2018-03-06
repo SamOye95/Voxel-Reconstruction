@@ -340,7 +340,10 @@ void Reconstructor::createAndSaveColorModels()
 	}
 }
 
-//** create
+/** For every camera, only taking into account the unoccluded voxels, 
+*	create ColorModels for every cluster.
+*	Use a zBuffer to determine occlusions, and a cluster mask to iterate clusters.
+*/
 void Reconstructor::createColorModels(vector<ColorModel> & models)
 {
 	// Loop through cameras 
@@ -384,6 +387,10 @@ void Reconstructor::createColorModels(vector<ColorModel> & models)
 	}
 }
 
+/*	Calculate the on-screen color models. 
+*	Load the original color models from disk.
+*	Compare on-screen color models with originals and label clusters accordingly.
+*/
 void Reconstructor::assignLabels(vector<int>& labels)
 {
 	vector<ColorModel> onScreenColorModels(4);
