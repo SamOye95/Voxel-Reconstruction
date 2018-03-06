@@ -200,7 +200,7 @@ void Reconstructor::labelClusters(bool isFirstFrame)
 				Point(centers.at<float>(labels[i], 0), centers.at<float>(labels[i], 1))
 			);
 
-			if (distance < 600)
+			if (distance < 500)
 			{
 				m_visible_voxels[i]->label = labels[i];
 			}
@@ -294,7 +294,7 @@ void Reconstructor::update()
 			voxel->label = minLabel;
 
 #pragma omp critical //push_back is critical
-			if (minDistance < 600 || !isClustered)
+			if (minDistance < 500 || !isClustered)
 			{
 				visible_voxels.push_back(voxel);
 			}

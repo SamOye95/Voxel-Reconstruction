@@ -920,6 +920,7 @@ void Glut::drawTracks()
 
 	for (int i = 0; i < m_Glut->getScene3d().getReconstructor().getClusterCount(); i++)
 	{
+		glLineWidth(2.0f);
 		glBegin(GL_LINE_STRIP);
 
 		// fixed voxel color based on voxel label
